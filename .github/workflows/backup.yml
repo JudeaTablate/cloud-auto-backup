@@ -16,6 +16,7 @@ jobs:
         uses: AnimMouse/setup-rclone@v1
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
+          disable_base64: true
 
       - name: Verify Rclone Installation
         run: rclone version 
