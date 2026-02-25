@@ -1,9 +1,9 @@
 name: Weekly Cloud Backup
 
 on:
+  workflow_dispatch: # Manual button
   schedule:
-    - cron: '0 0 * * 0' # runs every Sunday at midnight
-  workflow_dispatch:   # creates the "Run Workflow" button
+    - cron: '0 0 * * 0'
 
 jobs:
   backup-job:
@@ -16,13 +16,16 @@ jobs:
         uses: AnimMouse/setup-rclone@v1
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
-          
+
+      - name: Verify Rclone Installation
+        run: rclone version 
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Install Dependencies and Run Backup
+      - name: Run Backup Script
         run: |
           pip install rclone-python
           python backup.py
