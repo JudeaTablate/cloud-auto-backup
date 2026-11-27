@@ -57,6 +57,7 @@ code { font-family: var(--mono); font-size: .92em; color: var(--blue); }
 .nav { display: flex; flex-wrap: wrap; gap: 1.4rem; padding-top: 1.2rem; font-size: 13px; }
 .nav a { color: var(--muted); text-decoration: none; }
 .nav a:hover { color: var(--blue); }
+.nav a.on { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .nav .gh { margin-left: auto; color: var(--ink); }
 .title { padding-top: 5rem; padding-bottom: 4.5rem; }
 /* a paper-coloured halo keeps the copy readable while clouds pass behind it */
@@ -79,6 +80,17 @@ main {
   border-left: 2px solid var(--line); font-size: 12px; color: var(--muted);
   background: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 12px) left / 8px 100% no-repeat;
 }
+.tape { --needle: -20px; }
+.tape span { transition: color .3s, transform .3s; }
+.tape span.on { color: var(--blue); font-weight: 600; transform: translateX(4px); }
+.tape::before {
+  content: ""; position: absolute; left: -7px; top: var(--needle); margin-top: -6px;
+  border: 6px solid transparent; border-left: 8px solid var(--beacon);
+  transition: top .45s cubic-bezier(.3, .7, .2, 1);
+}
+.metar b { color: var(--beacon); font-weight: 500; }
+.eta { margin: 1.1rem 0 0; font-size: 13px; color: var(--muted); }
+.eta b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 section { grid-column: 2; padding: 2.6rem 0 1rem; border-bottom: 1px dashed var(--line); }
 section:last-of-type { border-bottom: 0; }
 h2 { margin: 0 0 1rem; font: 400 2rem/1.1 var(--serif); }

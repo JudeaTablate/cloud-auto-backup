@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-cron="$cron">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div class="metar" role="note" aria-label="build status"><span>$metar</span><span class="blink">_</span></div>
+<div class="metar" role="note" aria-label="build status"><span>$metar NXT <b data-countdown>T-0D00H00M00S</b></span><span class="blink">_</span></div>
 
 <header class="top">
   $sky
@@ -22,13 +22,14 @@
   </nav>
   <div class="title">
     <p class="kicker">cloud-auto-backup &middot; v$version</p>
-    <h1>My repo, <em>up in the clouds</em>, every Sunday at&nbsp;00:00&nbsp;UTC.</h1>
+    <h1>My repo, <em>up in the clouds</em>, $schedule.</h1>
+    <p class="eta">next departure <b data-countdown>&hellip;</b> &middot; <span data-local-time>&hellip;</span> your time</p>
     <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. It zips the tree, writes a SHA-256, ships both through rclone, and throws away the old ones.</p>
   </div>
 </header>
 
 <main>
-  <aside class="tape" aria-hidden="true"><span>FL350</span><span>FL240</span><span>FL120</span><span>FL050</span><span>GND</span></aside>
+  <aside class="tape" aria-hidden="true"><span data-fl="fl350">FL350</span><span data-fl="fl240">FL240</span><span data-fl="fl120">FL120</span><span data-fl="fl050">FL050</span><span data-fl="gnd">GND</span></aside>
 
   <section id="gnd">
     <h2><span class="fl">GND</span> Before takeoff</h2>
@@ -80,5 +81,6 @@
   <p>Built by <code>site/build.py</code> from commit <code>$commit</code> on $built. $pylines lines of Python. The clouds above are seeded from the commit hash, so each commit gets its own sky.</p>
   <p><a href="$repo">github.com/JudeaTablate/cloud-auto-backup</a></p>
 </footer>
+<script src="js/live.js" defer></script>
 </body>
 </html>
