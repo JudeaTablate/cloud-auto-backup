@@ -29,7 +29,17 @@ jobs:
       - name: Install cab
         run: pip install .
 
-      - name: Back up
+      - name: Back up this repo
         env:
           CAB_DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: cab run
+
+      # Every repo on the account, each as a git bundle under Backups/repos/<name>/.
+      # BACKUP_GITHUB_TOKEN is a fine-grained token with read-only Contents on all
+      # repos; without it only public repos are backed up.
+      - name: Back up all my repos
+        env:
+          CAB_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          CAB_GITHUB_USER: ${{ github.repository_owner }}
+          CAB_GITHUB_TOKEN: ${{ secrets.BACKUP_GITHUB_TOKEN }}
+        run: cab repos

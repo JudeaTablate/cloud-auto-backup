@@ -36,4 +36,5 @@ folder = "Backups"
 source = "."
 keep = 8
 prefix = "repo_backup"
+github_user = "JudeaTablate"   # for `cab repos`
 exclude = [".git", "__pycache__", ".pytest_cache", "*.egg-info", "*.pyc", ".venv", "venv", "dist", "_site", "*.zip"]
