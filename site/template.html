@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cloud-auto-backup</title>
+<meta name="description" content="A small Python tool that zips a repo, checksums it, and ships it to Google Drive (or any rclone remote) every Sunday.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="metar" role="note" aria-label="build status"><span>$metar</span><span class="blink">_</span></div>
+
+<header class="top">
+  $sky
+  <nav class="nav">
+    <a href="#gnd">GND</a><a href="#fl050">FL050</a><a href="#fl120">FL120</a><a href="#fl240">FL240</a><a href="#fl350">FL350</a>
+    <a class="gh" href="$repo">source&nbsp;&#8599;</a>
+  </nav>
+  <div class="title">
+    <p class="kicker">cloud-auto-backup &middot; v$version</p>
+    <h1>My repo, <em>up in the clouds</em>, every Sunday at&nbsp;00:00&nbsp;UTC.</h1>
+    <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. It zips the tree, writes a SHA-256, ships both through rclone, and throws away the old ones.</p>
+  </div>
+</header>
+
+<main>
+  <aside class="tape" aria-hidden="true"><span>FL350</span><span>FL240</span><span>FL120</span><span>FL050</span><span>GND</span></aside>
+
+  <section id="gnd">
+    <h2><span class="fl">GND</span> Before takeoff</h2>
+    <p>You need Python 3.11+ and <a href="https://rclone.org/">rclone</a> with a remote already configured. The package itself uses only the standard library.</p>
+<pre class="term"><span class="p">~</span> pip install git+$repo
+<span class="p">~</span> rclone config            <span class="c"># make a remote called "gdrive"</span>
+<span class="p">~</span> cab run --dry-run         <span class="c"># see what would go up</span></pre>
+  </section>
+
+  <section id="fl050">
+    <h2><span class="fl">FL050</span> What one run looks like</h2>
+<pre class="term log"><span class="t">00:00:04</span>  packed   repo_backup_2026-11-29_00-00.zip  (37 files, 48.2 KB)
+<span class="t">00:00:04</span>  sha256   9f2c&hellip;e41a
+<span class="t">00:00:07</span>  uploaded -&gt; gdrive:Backups
+<span class="t">00:00:08</span>  pruned   repo_backup_2026-10-04_00-00.zip
+<span class="t">00:00:08</span>  pruned   repo_backup_2026-10-04_00-00.zip.sha256</pre>
+    <p class="note">The zip is built in a temp directory, never inside the folder it's archiving, so it can't swallow itself. <code>.git</code>, caches and old zips are skipped.</p>
+  </section>
+
+  <section id="fl120">
+    <h2><span class="fl">FL120</span> How it flies</h2>
+    <ol class="route">
+      <li><b>config</b><span>defaults &larr; <code>[tool.cab]</code> in pyproject &larr; <code>CAB_*</code> env &larr; flags</span></li>
+      <li><b>archive</b><span>walk the tree, apply excludes, deflate, hash</span></li>
+      <li><b>remote</b><span><code>rclone copyto</code> for the zip and its <code>.sha256</code></span></li>
+      <li><b>retention</b><span>keep the newest <i>N</i>, delete the rest (sidecars too)</span></li>
+    </ol>
+    <p>Every rclone call goes through one function, so the tests run against a fake remote and never touch a real drive.</p>
+  </section>
+
+  <section id="fl240">
+    <h2><span class="fl">FL240</span> Commands</h2>
+    <p class="note">Generated from the real argparse parser at build time.</p>
+    $commands
+  </section>
+
+  <section id="fl350">
+    <h2><span class="fl">FL350</span> Settings</h2>
+    <p>Put them in <code>pyproject.toml</code> under <code>[tool.cab]</code>, or set the env var. Flags win over both.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>key</th><th>env</th><th>default</th></tr></thead>
+      <tbody>$settings</tbody>
+    </table></div>
+    <p>To verify a download: <code>sha256sum -c repo_backup_*.zip.sha256</code></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Built by <code>site/build.py</code> from commit <code>$commit</code> on $built. $pylines lines of Python. The clouds above are seeded from the commit hash, so each commit gets its own sky.</p>
+  <p><a href="$repo">github.com/JudeaTablate/cloud-auto-backup</a></p>
+</footer>
+</body>
+</html>
