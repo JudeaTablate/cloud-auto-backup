@@ -65,15 +65,18 @@ def cloud_svg(rng: random.Random, uid: str, cx: float, base: float, width: float
     return clip, cloud
 
 
+# drawn 1:1 on a 1920px screen; narrower screens crop the sides, never zoom in
+SKY_WIDTH = 1920
+
 DECKS = (
     # name, base band (y0, y1), width range, clouds per lap, seconds per lap
-    ("hi", (80, 110), (70, 115), 6, 140),
-    ("mid", (135, 165), (120, 175), 4, 90),
-    ("lo", (190, 218), (170, 240), 3, 55),
+    ("hi", (80, 110), (70, 115), 10, 220),
+    ("mid", (135, 165), (120, 175), 7, 145),
+    ("lo", (190, 218), (170, 240), 5, 90),
 )
 
 
-def sky_svg(seed: str, width: int = 1200, height: int = 230) -> str:
+def sky_svg(seed: str, width: int = SKY_WIDTH, height: int = 230) -> str:
     """The sky band: three cloud decks drifting left at different speeds.
 
     Each deck is drawn once, then reused at -width and +width with <use>, so
@@ -91,7 +94,7 @@ def sky_svg(seed: str, width: int = 1200, height: int = 230) -> str:
     stars = "".join(
         f'<circle class="star" cx="{rng.uniform(0, width):.0f}" cy="{rng.uniform(6, height * 0.6):.0f}" '
         f'r="{rng.choice((0.6, 0.8, 1.1))}"/>'
-        for _ in range(70)
+        for _ in range(110)
     )
     decks = []
     for name, (y0, y1), (w0, w1), count, seconds in DECKS:
@@ -217,11 +220,31 @@ def terminal_data() -> str:
     return json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
 
 
+ASSETS = ("style.css", "js/live.js", "js/terminal.js", "js/planner.js")
+
+
+def fingerprint(rel: str) -> str:
+    """'js/live.js' -> 'js/live.3f9a1c2b7e.js', named after the file's content.
+
+    GitHub Pages lets browsers cache assets for 10 minutes, so a browser could
+    pair fresh HTML with a stale stylesheet. Content-hashed names make every
+    change a new URL, so HTML and assets always match.
+    """
+    digest = hashlib.sha256((HERE / rel).read_bytes()).hexdigest()[:10]
+    stem, dot, ext = rel.rpartition(".")
+    return f"{stem}.{digest}{dot}{ext}"
+
+
 def build(out: Path) -> Path:
     now = datetime.now(timezone.utc)
     commit = git("rev-parse", "HEAD")
     seed = commit or hashlib.sha1(now.isoformat().encode()).hexdigest()
+    urls = {rel: fingerprint(rel) for rel in ASSETS}
     page = Template((HERE / "template.html").read_text(encoding="utf-8")).substitute(
+        css=urls["style.css"],
+        js_live=urls["js/live.js"],
+        js_terminal=urls["js/terminal.js"],
+        js_planner=urls["js/planner.js"],
         version=__version__,
         status=status(commit),
         sky=sky_svg(seed),
@@ -239,8 +262,9 @@ def build(out: Path) -> Path:
         shutil.rmtree(out)
     out.mkdir(parents=True)
     (out / "index.html").write_text(page, encoding="utf-8")
-    shutil.copy(HERE / "style.css", out / "style.css")
-    shutil.copytree(HERE / "js", out / "js")
+    for rel, url in urls.items():
+        (out / url).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(HERE / rel, out / url)
     (out / ".nojekyll").touch()
     return out / "index.html"
 
