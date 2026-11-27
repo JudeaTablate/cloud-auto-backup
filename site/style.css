@@ -17,7 +17,9 @@
   --serif: "Instrument Serif", Georgia, serif;
 }
 @media (prefers-color-scheme: dark) {
-  .sky .stars { opacity: .75; }
+  .sky .stars { opacity: .85; }
+  .sky .deck-hi { opacity: .45; }
+  .sky .deck-mid { opacity: .7; }
   :root {
     --paper: #0b1724;
     --paper-2: #102131;
@@ -25,11 +27,11 @@
     --muted: #8aa3ba;
     --line: #23394f;
     --blue: #7db4ea;
-    --cloud: #2b4560;
-    --cloud-shade: #172a3d;
+    --cloud: #4d6f92;
+    --cloud-shade: #2a4563;
     --cloud-edge: #34506b;
-    --sky-top: #050b14;
-    --sky-bottom: #17304a;
+    --sky-top: #07111f;
+    --sky-bottom: #1d3a5a;
     --term: #060e17;
   }
 }
@@ -44,11 +46,13 @@ code { font-family: var(--mono); font-size: .92em; color: var(--blue); }
 
 .status {
   display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1.6rem;
-  padding: .55rem 16px; font-size: 12.5px; background: var(--ink); color: var(--paper);
+  padding: .55rem 16px; font-size: 12.5px;
+  /* always a dark strip, in both colour schemes */
+  background: #0f2236; color: #e6eff7;
 }
 .status code { color: inherit; font-size: 1em; }
-.status b { color: var(--beacon); font-weight: 500; font-variant-numeric: tabular-nums; }
-.status .build { margin-left: auto; opacity: .7; }
+.status b { color: #f2bd55; font-weight: 500; font-variant-numeric: tabular-nums; }
+.status .build { margin-left: auto; color: #9fb6cb; }
 .status .build a { color: inherit; }
 .status .live i {
   display: inline-block; width: 7px; height: 7px; margin-right: .55rem; border-radius: 50%;
