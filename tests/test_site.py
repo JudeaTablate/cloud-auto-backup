@@ -78,3 +78,10 @@ def test_every_section_has_a_tape_mark(page):
     sections = set(re.findall(r'<section id="([^"]+)"', html))
     marks = set(re.findall(r'data-fl="([^"]+)"', html))
     assert sections == marks
+
+
+def test_status_bar_is_plain_language(site):
+    bar = site.status("abc1234def")
+    assert "Every Sunday at" in bar and "UTC" in bar
+    assert "gdrive:Backups" in bar and "keeps the last 8" in bar
+    assert "data-countdown" in bar and "abc1234" in bar

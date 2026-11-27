@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div class="metar" role="note" aria-label="build status"><span>$metar NXT <b data-countdown>T-0D00H00M00S</b></span><span class="blink">_</span></div>
+<div class="status" role="note" aria-label="backup status">$status</div>
 
 <header class="top">
   <nav class="nav">
@@ -24,7 +24,7 @@
   <div class="title">
     <p class="kicker">cloud-auto-backup &middot; v$version</p>
     <h1>My repo, <em>up in the clouds</em>, $schedule.</h1>
-    <p class="eta">next departure <b data-countdown>&hellip;</b> &middot; <span data-local-time>&hellip;</span> your time</p>
+    <p class="eta">next backup in <b data-countdown>&hellip;</b> &middot; <span data-local-time>&hellip;</span> your time</p>
     <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. It zips the tree, writes a SHA-256, ships both through rclone, and throws away the old ones.</p>
   </div>
 </header>
