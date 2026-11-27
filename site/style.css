@@ -75,7 +75,7 @@ main {
   display: grid; grid-template-columns: 5rem minmax(0, 1fr); column-gap: 2rem;
 }
 .tape {
-  grid-row: 1 / span 6; position: sticky; top: 1.5rem; align-self: start;
+  grid-row: 1 / span 7; position: sticky; top: 1.5rem; align-self: start;
   display: flex; flex-direction: column; gap: 2.4rem; padding: .8rem 0 .8rem .8rem;
   border-left: 2px solid var(--line); font-size: 12px; color: var(--muted);
   background: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 12px) left / 8px 100% no-repeat;
@@ -141,6 +141,27 @@ h2 { margin: 0 0 1rem; font: 400 2rem/1.1 var(--serif); }
 .route li::before { content: "WP" counter(wp, decimal-leading-zero); color: var(--muted); font-size: 13px; }
 .route span { color: var(--muted); }
 
+.plan { margin-top: 1.2rem; }
+.fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem 1rem; }
+.fields label { display: flex; flex-direction: column; gap: .3rem; font-size: 12px; color: var(--muted); }
+.fields label.wide { grid-column: span 2; }
+.fields b { color: var(--blue); }
+.fields input:not([type=range]), .fields select {
+  font: 14px var(--mono); color: var(--ink); background: var(--paper-2);
+  border: 1px solid var(--line); border-radius: 3px; padding: .45rem .55rem; width: 100%;
+}
+.fields input:focus, .fields select:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+.fields input[type=range] { accent-color: var(--blue); margin: .55rem 0 0; }
+.retain { margin: 1.4rem 0 .4rem; }
+.strip { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; }
+.strip span { height: 26px; border-radius: 2px; transition: background .25s, opacity .25s; }
+.strip .kept { background: var(--blue); }
+.strip .gone { background: repeating-linear-gradient(135deg, var(--line) 0 3px, transparent 3px 7px); opacity: .9; }
+.snip { margin-top: .9rem; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.snip-h { display: flex; justify-content: space-between; align-items: center; padding: .3rem .4rem .3rem .8rem; background: var(--paper-2); font-size: 12px; color: var(--muted); }
+.snip-h button { font: 12px var(--mono); color: var(--blue); background: none; border: 1px solid var(--line); border-radius: 3px; padding: .15rem .55rem; cursor: pointer; }
+.snip pre { margin: 0; padding: .8rem; overflow-x: auto; font: 13px/1.6 var(--mono); }
+
 .cmd { border-top: 1px solid var(--line); }
 .cmd summary { cursor: pointer; padding: .7rem 0; display: flex; gap: 1rem; list-style: none; }
 .cmd summary::-webkit-details-marker { display: none; }
@@ -171,6 +192,7 @@ th { font-weight: 500; color: var(--muted); font-size: 12px; text-transform: upp
   .route li { grid-template-columns: 3rem 1fr; }
   .route li span { grid-column: 2; }
   .flags li { grid-template-columns: 1fr; gap: 0; }
+  .fields { grid-template-columns: 1fr 1fr; }
   .cmd summary { flex-direction: column; gap: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .blink, .sky .deck { animation: none; } html { scroll-behavior: auto; } }
