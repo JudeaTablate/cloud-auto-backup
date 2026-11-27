@@ -52,7 +52,13 @@ def cloud_svg(rng: random.Random, uid: str, cx: float, base: float, width: float
         t = (i + 0.5) / n
         r = height * (0.45 + 0.55 * math.sin(math.pi * t)) * rng.uniform(0.85, 1.1)
         x = cx - width / 2 + t * width
-        puffs.append(f'<circle cx="{x:.1f}" cy="{base - r * 0.55:.1f}" r="{r:.1f}"/>')
+        puffs.append(f'<circle cx="{x:.1f}" cy="{base - r * rng.uniform(0.45, 0.7):.1f}" r="{r:.1f}"/>')
+    # bigger clouds get a second, smaller tier of puffs so they tower a little
+    if width > 200:
+        for _ in range(rng.randint(1, 3)):
+            r = height * rng.uniform(0.45, 0.7)
+            x = cx + rng.uniform(-0.25, 0.25) * width
+            puffs.append(f'<circle cx="{x:.1f}" cy="{base - height * rng.uniform(0.9, 1.2):.1f}" r="{r:.1f}"/>')
     left = cx - width / 2 - height
     clip = (f'<clipPath id="cut-{uid}"><rect x="{left:.1f}" y="{base - 3 * height:.1f}" '
             f'width="{width + 2 * height:.1f}" height="{3 * height:.1f}"/></clipPath>')
@@ -65,18 +71,20 @@ def cloud_svg(rng: random.Random, uid: str, cx: float, base: float, width: float
     return clip, cloud
 
 
-# drawn 1:1 on a 1920px screen; narrower screens crop the sides, never zoom in
-SKY_WIDTH = 1920
+# the view through the window: a tall frame, drawn once per lap width
+SKY_WIDTH = 900
+SKY_HEIGHT = 1000
 
 DECKS = (
     # name, base band (y0, y1), width range, clouds per lap, seconds per lap
-    ("hi", (80, 110), (70, 115), 10, 220),
-    ("mid", (135, 165), (120, 175), 7, 145),
-    ("lo", (190, 218), (170, 240), 5, 90),
+    ("hi", (210, 300), (120, 190), 4, 200),
+    ("mid", (430, 500), (160, 230), 3, 130),
+    ("lo", (640, 700), (200, 280), 3, 80),
+    ("floor", (880, 910), (260, 360), 6, 55),  # the carpet of cloud below the plane
 )
 
 
-def sky_svg(seed: str, width: int = SKY_WIDTH, height: int = 230) -> str:
+def sky_svg(seed: str, width: int = SKY_WIDTH, height: int = SKY_HEIGHT) -> str:
     """The sky band: three cloud decks drifting left at different speeds.
 
     Each deck is drawn once, then reused at -width and +width with <use>, so
@@ -89,12 +97,13 @@ def sky_svg(seed: str, width: int = SKY_WIDTH, height: int = 230) -> str:
         '<stop offset="0" class="sky-top"/><stop offset="1" class="sky-bottom"/></linearGradient>',
         '<filter id="soft-hi"><feGaussianBlur stdDeviation="2.2"/></filter>',
         '<filter id="soft-mid"><feGaussianBlur stdDeviation="1"/></filter>',
-        '<filter id="soft-lo"><feGaussianBlur stdDeviation="0.4"/></filter>',
+        '<filter id="soft-lo"><feGaussianBlur stdDeviation="0.6"/></filter>',
+        '<filter id="soft-floor"><feGaussianBlur stdDeviation="1.4"/></filter>',
     ]
     stars = "".join(
         f'<circle class="star" cx="{rng.uniform(0, width):.0f}" cy="{rng.uniform(6, height * 0.6):.0f}" '
-        f'r="{rng.choice((0.6, 0.8, 1.1))}"/>'
-        for _ in range(110)
+        f'r="{rng.choice((1.2, 1.6, 2.2))}"/>'
+        for _ in range(90)
     )
     decks = []
     for name, (y0, y1), (w0, w1), count, seconds in DECKS:
@@ -106,13 +115,15 @@ def sky_svg(seed: str, width: int = SKY_WIDTH, height: int = 230) -> str:
             )
             defs.append(clip)
             clouds.append(cloud)
+        if name == "floor":  # solid cloud below the carpet, so no sky shows underneath
+            clouds.append(f'<rect class="body" x="0" y="{y0 - 6}" width="{width}" height="{height - y0 + 6}"/>')
         decks.append(
             f'<g class="deck deck-{name}" style="--lap:{seconds}s">'
             f'<g id="deck-{name}" filter="url(#soft-{name})">{"".join(clouds)}</g>'
             f'<use href="#deck-{name}" x="{-width}"/><use href="#deck-{name}" x="{width}"/></g>'
         )
     return (
-        f'<svg class="sky" viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMax slice" '
+        f'<svg class="sky" viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid slice" '
         f'aria-hidden="true" style="--w:{width}px"><defs>{"".join(defs)}</defs>'
         f'<rect class="air" width="{width}" height="{height}" fill="url(#sky-fill)"/>'
         f'<g class="stars">{stars}</g>{"".join(decks)}</svg>'

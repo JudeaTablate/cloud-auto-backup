@@ -20,12 +20,17 @@
     <button class="drift-toggle" type="button" aria-pressed="false" data-drift>pause clouds</button>
     <a class="gh" href="$repo">source&nbsp;&#8599;</a>
   </nav>
-  <div class="skyband">$sky</div>
   <div class="title">
-    <p class="kicker">cloud-auto-backup &middot; v$version</p>
-    <h1>My repo, <em>up in the clouds</em>, $schedule.</h1>
-    <p class="eta">next backup in <b data-countdown>&hellip;</b> &middot; <span data-local-time>&hellip;</span> your time</p>
-    <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. It zips the tree, writes a SHA-256, ships both through rclone, and throws away the old ones.</p>
+    <div class="copy">
+      <p class="kicker">cloud-auto-backup &middot; v$version</p>
+      <h1>My repo, <em>up in the clouds</em>, $schedule.</h1>
+      <p class="eta">next backup in <b data-countdown>&hellip;</b> &middot; <span data-local-time>&hellip;</span> your time</p>
+      <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. It zips the tree, writes a SHA-256, ships both through rclone, and throws away the old ones.</p>
+    </div>
+    <figure class="seat">
+      <div class="window" data-sky="day"><div class="glass">$sky</div></div>
+      <figcaption>window seat &middot; <span data-sky-label>daytime</span> sky, matched to your clock</figcaption>
+    </figure>
   </div>
 </header>
 
