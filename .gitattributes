@@ -1,0 +1,5 @@
+# The project site's front-end is documentation for the tool, not the tool.
+# Keep it out of GitHub's language stats; site/build.py still counts as Python.
+site/*.html linguist-documentation
+site/*.css  linguist-documentation
+site/js/**  linguist-documentation
