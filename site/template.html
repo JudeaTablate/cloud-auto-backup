@@ -40,13 +40,17 @@
   </section>
 
   <section id="fl050">
-    <h2><span class="fl">FL050</span> What one run looks like</h2>
-<pre class="term log"><span class="t">00:00:04</span>  packed   repo_backup_2026-11-29_00-00.zip  (37 files, 48.2 KB)
-<span class="t">00:00:04</span>  sha256   9f2c&hellip;e41a
-<span class="t">00:00:07</span>  uploaded -&gt; gdrive:Backups
-<span class="t">00:00:08</span>  pruned   repo_backup_2026-10-04_00-00.zip
-<span class="t">00:00:08</span>  pruned   repo_backup_2026-10-04_00-00.zip.sha256</pre>
-    <p class="note">The zip is built in a temp directory, never inside the folder it's archiving, so it can't swallow itself. <code>.git</code>, caches and old zips are skipped.</p>
+    <h2><span class="fl">FL050</span> Take it for a spin</h2>
+    <p>This is a pretend <code>cab</code> wired to an in-memory remote with six weekly snapshots. The help text is the real argparse output. Try <code>cab prune --keep 3</code>, then <code>cab list</code>.</p>
+    <div class="term live" data-term>
+      <div class="bar"><span>gdrive:Backups</span><span>simulated &middot; resets on reload</span></div>
+      <div class="screen" role="log" aria-live="polite"></div>
+      <label class="line"><span class="p">guest@cab:~</span><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="terminal input"></label>
+      <div class="chips">
+        <button data-cmd="cab run">cab run</button><button data-cmd="cab list">cab list</button><button data-cmd="cab prune --keep 3">cab prune --keep 3</button><button data-cmd="cab run --dry-run --keep 2">cab run -n --keep 2</button><button data-cmd="cab config --remote s3">cab config --remote s3</button><button data-cmd="help">help</button>
+      </div>
+    </div>
+    <p class="note">The real zip is built in a temp directory, never inside the folder it's archiving, so it can't swallow itself. <code>.git</code>, caches and old zips are skipped.</p>
   </section>
 
   <section id="fl120">
@@ -81,6 +85,8 @@
   <p>Built by <code>site/build.py</code> from commit <code>$commit</code> on $built. $pylines lines of Python. The clouds above are seeded from the commit hash, so each commit gets its own sky.</p>
   <p><a href="$repo">github.com/JudeaTablate/cloud-auto-backup</a></p>
 </footer>
+<script type="application/json" id="cab-data">$termdata</script>
 <script src="js/live.js" defer></script>
+<script src="js/terminal.js" defer></script>
 </body>
 </html>
