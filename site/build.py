@@ -16,6 +16,7 @@ import dataclasses
 import hashlib
 import html
 import json
+import math
 import os
 import random
 import re
@@ -38,57 +39,80 @@ REPO = "https://github.com/JudeaTablate/cloud-auto-backup"
 
 # ---------------------------------------------------------------- sky ----
 
-def cloud_path(rng: random.Random, cx: float, base: float, width: float) -> str:
-    """One cumulus: a row of overlapping puffs over a flat base, as an SVG path."""
-    puffs = rng.randint(3, 5)
-    step = width / puffs
-    d = [f"M{cx - width / 2:.1f},{base:.1f}"]
-    x = cx - width / 2
-    for i in range(puffs):
-        middle = 0 < i < puffs - 1
-        # r just over half the chord + the large-arc flag = a puff taller than a semicircle
-        r = step / 2 * (rng.uniform(1.02, 1.2) if middle else rng.uniform(1.0, 1.05))
-        nx = x + step
-        d.append(f"A{r:.1f},{r:.1f} 0 {1 if middle else 0} 1 {nx:.1f},{base:.1f}")
-        x = nx
-    d.append("Z")
-    return " ".join(d)
+def cloud_svg(rng: random.Random, uid: str, cx: float, base: float, width: float) -> tuple[str, str]:
+    """One soft cumulus: a row of puffs, tallest in the middle, cut flat at the base.
+
+    Returns (clipPath def, cloud markup). The cloud is drawn twice: a shade
+    layer nudged down-right for the underside, and the white body on top.
+    """
+    n = rng.randint(4, 6)
+    height = width * rng.uniform(0.26, 0.34)
+    puffs = []
+    for i in range(n):
+        t = (i + 0.5) / n
+        r = height * (0.45 + 0.55 * math.sin(math.pi * t)) * rng.uniform(0.85, 1.1)
+        x = cx - width / 2 + t * width
+        puffs.append(f'<circle cx="{x:.1f}" cy="{base - r * 0.55:.1f}" r="{r:.1f}"/>')
+    left = cx - width / 2 - height
+    clip = (f'<clipPath id="cut-{uid}"><rect x="{left:.1f}" y="{base - 3 * height:.1f}" '
+            f'width="{width + 2 * height:.1f}" height="{3 * height:.1f}"/></clipPath>')
+    body = "".join(puffs)
+    cloud = (
+        f'<g class="cloud">'
+        f'<g class="shade" fill="currentColor" clip-path="url(#cut-{uid})" transform="translate(2 5)">{body}</g>'
+        f'<g class="body" clip-path="url(#cut-{uid})">{body}</g></g>'
+    )
+    return clip, cloud
 
 
 DECKS = (
-    # name, base band (y0, y1), scale, clouds per lap, seconds per lap
-    ("hi", (60, 120), 0.5, 5, 140),
-    ("mid", (150, 230), 0.75, 4, 90),
-    ("lo", (260, 340), 1.0, 3, 55),
+    # name, base band (y0, y1), width range, clouds per lap, seconds per lap
+    ("hi", (80, 110), (70, 115), 6, 140),
+    ("mid", (135, 165), (120, 175), 4, 90),
+    ("lo", (190, 218), (170, 240), 3, 55),
 )
 
 
-def sky_svg(seed: str, width: int = 1200, height: int = 360) -> str:
-    """Three cloud decks that drift left at different speeds (parallax).
+def sky_svg(seed: str, width: int = 1200, height: int = 230) -> str:
+    """The sky band: three cloud decks drifting left at different speeds.
 
     Each deck is drawn once, then reused at -width and +width with <use>, so
-    sliding it by exactly one width loops without a visible seam.
+    sliding it by exactly one width loops without a visible seam. Far decks
+    are smaller, paler and blurrier. Stars only show in dark mode.
     """
     rng = random.Random(seed)
+    defs = [
+        '<linearGradient id="sky-fill" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" class="sky-top"/><stop offset="1" class="sky-bottom"/></linearGradient>',
+        '<filter id="soft-hi"><feGaussianBlur stdDeviation="2.2"/></filter>',
+        '<filter id="soft-mid"><feGaussianBlur stdDeviation="1"/></filter>',
+        '<filter id="soft-lo"><feGaussianBlur stdDeviation="0.4"/></filter>',
+    ]
+    stars = "".join(
+        f'<circle class="star" cx="{rng.uniform(0, width):.0f}" cy="{rng.uniform(6, height * 0.6):.0f}" '
+        f'r="{rng.choice((0.6, 0.8, 1.1))}"/>'
+        for _ in range(70)
+    )
     decks = []
-    for name, (y0, y1), scale, count, seconds in DECKS:
+    for name, (y0, y1), (w0, w1), count, seconds in DECKS:
         slot = width / count
-        clouds = "".join(
-            f'<path d="{cloud_path(rng, slot * (i + rng.uniform(0.15, 0.85)), rng.uniform(y0, y1), rng.uniform(140, 260) * scale)}"/>'
-            for i in range(count)
-        )
+        clouds = []
+        for i in range(count):
+            clip, cloud = cloud_svg(
+                rng, f"{name}{i}", slot * (i + rng.uniform(0.2, 0.8)), rng.uniform(y0, y1), rng.uniform(w0, w1)
+            )
+            defs.append(clip)
+            clouds.append(cloud)
         decks.append(
             f'<g class="deck deck-{name}" style="--lap:{seconds}s">'
-            f'<g id="deck-{name}">{clouds}</g>'
+            f'<g id="deck-{name}" filter="url(#soft-{name})">{"".join(clouds)}</g>'
             f'<use href="#deck-{name}" x="{-width}"/><use href="#deck-{name}" x="{width}"/></g>'
         )
-    ticks = "".join(
-        f'<line class="tick" x1="0" x2="{14 if i % 5 == 0 else 7}" y1="{y}" y2="{y}"/>'
-        for i, y in enumerate(range(20, height, 16))
-    )
     return (
         f'<svg class="sky" viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMax slice" '
-        f'aria-hidden="true" style="--w:{width}px">{ticks}{"".join(decks)}</svg>'
+        f'aria-hidden="true" style="--w:{width}px"><defs>{"".join(defs)}</defs>'
+        f'<rect class="air" width="{width}" height="{height}" fill="url(#sky-fill)"/>'
+        f'<g class="stars">{stars}</g>{"".join(decks)}</svg>'
     )
 
 
