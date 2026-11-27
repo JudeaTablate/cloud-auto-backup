@@ -32,6 +32,21 @@
   tick();
   setInterval(tick, 1000);
 
+  // pause / resume the cloud drift; remembered per browser when storage works
+  const toggle = document.querySelector("[data-drift]");
+  if (toggle) {
+    const set = (still) => {
+      root.classList.toggle("still", still);
+      toggle.textContent = still ? "resume clouds" : "pause clouds";
+      toggle.setAttribute("aria-pressed", String(still));
+      try { localStorage.setItem("cab-still", still ? "1" : ""); } catch {}
+    };
+    let saved = false;
+    try { saved = localStorage.getItem("cab-still") === "1"; } catch {}
+    set(saved);
+    toggle.addEventListener("click", () => set(!root.classList.contains("still")));
+  }
+
   // altitude tape: highlight the flight level of the section in view
   const tape = document.querySelector(".tape");
   if (!tape || !("IntersectionObserver" in window)) return;

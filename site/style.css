@@ -58,7 +58,7 @@ code { font-family: var(--mono); font-size: .92em; color: var(--blue); }
 .nav a { color: var(--muted); text-decoration: none; }
 .nav a:hover { color: var(--blue); }
 .nav a.on { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
-.nav .gh { margin-left: auto; color: var(--ink); }
+.nav .gh { color: var(--ink); }
 .title { padding-top: 5rem; padding-bottom: 4.5rem; }
 /* a paper-coloured halo keeps the copy readable while clouds pass behind it */
 .title > * { text-shadow: 0 0 2px var(--paper), 0 0 8px var(--paper), 0 0 16px var(--paper); }
@@ -195,4 +195,15 @@ th { font-weight: 500; color: var(--muted); font-size: 12px; text-transform: upp
   .fields { grid-template-columns: 1fr 1fr; }
   .cmd summary { flex-direction: column; gap: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .blink, .sky .deck { animation: none; } html { scroll-behavior: auto; } }
+/* Reduced motion (e.g. Windows "Animation effects" off): no blinking, and the
+   clouds slow to a gentle drift instead of stopping. The pause button stops them. */
+@media (prefers-reduced-motion: reduce) {
+  .blink { animation: none; }
+  .sky .deck { animation-duration: calc(var(--lap) * 2.5); }
+  html { scroll-behavior: auto; }
+}
+html.still .sky .deck { animation-play-state: paused; }
+.drift-toggle {
+  margin-left: auto; font: 13px var(--mono); color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer;
+}
+.drift-toggle:hover { color: var(--blue); }
