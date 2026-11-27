@@ -16,6 +16,7 @@ import dataclasses
 import hashlib
 import html
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -104,6 +105,24 @@ def python_lines() -> int:
     return sum(len(p.read_text(encoding="utf-8").splitlines()) for p in files)
 
 
+DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+
+def backup_cron() -> str:
+    """The cron expression from the backup workflow, so the page can't drift from it."""
+    workflow = ROOT / ".github" / "workflows" / "backup.yml"
+    match = re.search(r"cron:\s*['\"]([^'\"]+)['\"]", workflow.read_text(encoding="utf-8"))
+    return match.group(1) if match else "0 0 * * 0"
+
+
+def describe_cron(cron: str) -> str:
+    """'0 0 * * 0' -> 'every Sunday at 00:00 UTC' (handles the shapes we use)."""
+    minute, hour, _, _, dow = cron.split()
+    when = f"{int(hour):02d}:{int(minute):02d}\u00a0UTC"
+    day = "every day" if dow == "*" else f"every {DAYS[int(dow) % 7]}"
+    return f"{day} at\u00a0{when}"
+
+
 def metar(commit: str, now: datetime) -> str:
     """The status strip, written like an aviation weather report."""
     cfg = Config()
@@ -164,12 +183,15 @@ def build(out: Path) -> Path:
         commit=commit[:7] or "local",
         built=now.strftime("%Y-%m-%d %H:%M UTC"),
         pylines=python_lines(),
+        cron=backup_cron(),
+        schedule=describe_cron(backup_cron()),
     )
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
     (out / "index.html").write_text(page, encoding="utf-8")
     shutil.copy(HERE / "style.css", out / "style.css")
+    shutil.copytree(HERE / "js", out / "js")
     (out / ".nojekyll").touch()
     return out / "index.html"
 
