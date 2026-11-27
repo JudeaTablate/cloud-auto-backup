@@ -1,9 +1,16 @@
 __pycache__/
 *.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
 
 venv/
+.venv/
 .env
 
+_site/
 *.zip
+*.zip.sha256
 rclone.conf
 .rclone.conf
