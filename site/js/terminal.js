@@ -35,10 +35,11 @@
 
   function parse(args) {
     const cfg = { ...data.defaults, dry_run: false };
-    const takes = ["remote", "folder", "source", "keep", "prefix", "exclude"];
+    const takes = ["remote", "folder", "source", "keep", "prefix", "exclude", "github-user"];
     for (let i = 0; i < args.length; i++) {
       let [flag, val] = args[i].split("=");
       if (flag === "-n" || flag === "--dry-run") { cfg.dry_run = true; continue; }
+      if (flag === "--forks") { cfg.forks = true; continue; }
       const key = flag.replace(/^--/, "");
       if (!flag.startsWith("--") || !takes.includes(key)) throw `unrecognized arguments: ${args[i]}`;
       val = val ?? args[++i];
@@ -70,6 +71,18 @@
   }
 
   const commands = {
+    async repos(cfg) {
+      const user = cfg["github-user"] || data.github_user || "you";
+      const repos = data.repos.length ? data.repos : [{ name: "cloud-auto-backup", kb: 120 }];
+      await wait(500);
+      log(`github   ${repos.length} repo${repos.length === 1 ? "" : "s"} for ${user}, public only (no CAB_GITHUB_TOKEN)`);
+      const tag = stamp(new Date());
+      for (const r of repos) {
+        await wait(260 + Math.min(r.kb, 4000) / 20);
+        log(`bundled  ${r.name.padEnd(22)} ${human(r.kb * 1024 * 0.6).padStart(9)} -> repos/${r.name}/${cfg.dry_run ? "  [dry-run]" : ""}`);
+      }
+      log(`done     ${repos.length} backed up, 0 failed`);
+    },
     async run(cfg) {
       const name = `${cfg.prefix}_${stamp(new Date())}.zip`;
       const size = 46000 + ((Math.random() * 6000) | 0);
@@ -137,7 +150,7 @@
     if (box.contains(document.activeElement) || document.activeElement === document.body) input.focus({ preventScroll: true });
   }
 
-  const words = ["cab run", "cab run --dry-run", "cab list", "cab prune --keep ", "cab config", "cab --help", "help", "clear", "ls", "whoami"];
+  const words = ["cab repos", "cab run", "cab run --dry-run", "cab list", "cab prune --keep ", "cab config", "cab --help", "help", "clear", "ls", "whoami"];
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); submit(input.value); }
     else if (e.key === "ArrowUp" && cursor > 0) { e.preventDefault(); input.value = history[--cursor]; }
