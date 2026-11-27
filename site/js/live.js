@@ -21,7 +21,7 @@
     const next = nextRun();
     let s = Math.max(0, Math.floor((next - Date.now()) / 1000));
     const d = Math.floor(s / 86400); s %= 86400;
-    const text = `T-${d}D${pad(Math.floor(s / 3600))}H${pad(Math.floor(s / 60) % 60)}M${pad(s % 60)}S`;
+    const text = `${d}d ${pad(Math.floor(s / 3600))}h ${pad(Math.floor(s / 60) % 60)}m ${pad(s % 60)}s`;
     out.forEach((el) => (el.textContent = text));
     if (local) {
       local.textContent = next.toLocaleString(undefined, {
