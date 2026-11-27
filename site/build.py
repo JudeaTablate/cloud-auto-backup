@@ -57,9 +57,9 @@ def cloud_path(rng: random.Random, cx: float, base: float, width: float) -> str:
 
 DECKS = (
     # name, base band (y0, y1), scale, clouds per lap, seconds per lap
-    ("hi", (60, 120), 0.5, 5, 260),
-    ("mid", (150, 230), 0.75, 4, 170),
-    ("lo", (260, 340), 1.0, 3, 110),
+    ("hi", (60, 120), 0.5, 5, 140),
+    ("mid", (150, 230), 0.75, 4, 90),
+    ("lo", (260, 340), 1.0, 3, 55),
 )
 
 
