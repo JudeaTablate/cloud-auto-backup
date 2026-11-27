@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cloud-auto-backup"
+version = "2.0.0"
+description = "Zip a repository, checksum it, and ship it to any rclone remote on a schedule."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "JudeaTablate" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+cab = "cloud_auto_backup.cli:main"
+
+[project.urls]
+Homepage = "https://judeatablate.github.io/cloud-auto-backup/"
+Source = "https://github.com/JudeaTablate/cloud-auto-backup"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+# Settings for `cab` itself. Every key can be overridden by a CAB_* env var.
+[tool.cab]
+remote = "gdrive"
+folder = "Backups"
+source = "."
+keep = 8
+prefix = "repo_backup"
+exclude = [".git", "__pycache__", ".pytest_cache", "*.egg-info", "*.pyc", ".venv", "venv", "dist", "_site", "*.zip"]
