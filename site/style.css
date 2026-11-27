@@ -108,6 +108,31 @@ h2 { margin: 0 0 1rem; font: 400 2rem/1.1 var(--serif); }
 .term .p::after { content: " $"; color: var(--beacon); }
 .term .c, .term .t { color: #7f98ae; }
 
+.term.live { padding: 0; overflow: hidden; }
+.term .bar {
+  display: flex; justify-content: space-between; gap: 1rem; padding: .45rem 1rem;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #7f98ae;
+  border-bottom: 1px solid #1f3850;
+}
+.term .screen {
+  height: 300px; overflow-y: auto; padding: .8rem 1rem 0; white-space: pre-wrap; word-break: break-word;
+  font-size: 13.5px; line-height: 1.6;
+}
+.term .screen .cmdline { color: #fff; margin-top: .5rem; }
+.term .screen .dim { color: #7f98ae; }
+.term .screen .err { color: #ff9b8a; }
+.term .line { display: flex; gap: .2ch; padding: .2rem 1rem .8rem; align-items: center; cursor: text; }
+.term .line input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #fff;
+  font: inherit; font-size: 13.5px; caret-color: var(--beacon);
+}
+.term .chips { display: flex; flex-wrap: wrap; gap: .4rem; padding: .7rem 1rem; border-top: 1px solid #1f3850; }
+.term .chips button {
+  font: 12px var(--mono); color: var(--term-ink); background: transparent; cursor: pointer;
+  border: 1px solid #2c4a66; border-radius: 3px; padding: .25rem .55rem;
+}
+.term .chips button:hover, .term .chips button:focus-visible { border-color: var(--beacon); color: #fff; outline: none; }
+
 .route { list-style: none; padding: 0; margin: 1rem 0; counter-reset: wp; }
 .route li {
   counter-increment: wp; display: grid; grid-template-columns: 3rem 7rem 1fr; gap: .6rem;

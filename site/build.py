@@ -15,6 +15,8 @@ import argparse
 import dataclasses
 import hashlib
 import html
+import json
+import os
 import random
 import re
 import shutil
@@ -169,6 +171,26 @@ def settings_table() -> str:
     return "\n".join(out)
 
 
+def terminal_data() -> str:
+    """Everything the in-browser terminal needs, straight from the real code."""
+    os.environ["COLUMNS"] = "78"  # argparse wraps to this
+    parser = cli.build_parser()
+    sub = next(a for a in parser._actions if isinstance(a, argparse._SubParsersAction))
+    defaults = Config()
+    files = git("ls-files").splitlines()
+    payload = {
+        "version": __version__,
+        "help": {"cab": parser.format_help(), **{n: p.format_help() for n, p in sub.choices.items()}},
+        "defaults": {
+            "remote": defaults.remote, "folder": defaults.folder, "source": str(defaults.source),
+            "keep": defaults.keep, "prefix": defaults.prefix, "exclude": ", ".join(defaults.exclude),
+        },
+        "files": len(files) or 30,
+        "ls": sorted({f.split("/")[0] + ("/" if "/" in f else "") for f in files}),
+    }
+    return json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
+
+
 def build(out: Path) -> Path:
     now = datetime.now(timezone.utc)
     commit = git("rev-parse", "HEAD")
@@ -184,6 +206,7 @@ def build(out: Path) -> Path:
         built=now.strftime("%Y-%m-%d %H:%M UTC"),
         pylines=python_lines(),
         cron=backup_cron(),
+        termdata=terminal_data(),
         schedule=describe_cron(backup_cron()),
     )
     if out.exists():
