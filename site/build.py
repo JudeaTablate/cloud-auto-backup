@@ -149,14 +149,16 @@ def describe_cron(cron: str) -> str:
     return f"{day} at\u00a0{when}"
 
 
-def metar(commit: str, now: datetime) -> str:
-    """The status strip, written like an aviation weather report."""
+def status(commit: str) -> str:
+    """The plain-language bar at the top: what runs, where, and which build this is."""
     cfg = Config()
-    tests = len(list(ROOT.glob("tests/test_*.py")))
+    kept = "keeps everything" if cfg.keep == 0 else f"keeps the last {cfg.keep}"
+    cron = backup_cron()
     return (
-        f"METAR CAB {now:%d%H%M}Z AUTO {commit[:7].upper() or 'LOCAL'} "
-        f"V{__version__.replace('.', '')} FEW030 SCT045 BKN080 "
-        f"RMK KEEP{cfg.keep:02d} PY{python_lines()}L T{tests:02d} CAVOK"
+        f'<span class="live"><i aria-hidden="true"></i>{html.escape(describe_cron(cron)[0].upper() + describe_cron(cron)[1:])}'
+        f' &rarr; <code>{html.escape(cfg.target)}</code>, {kept}</span>'
+        f'<span>next run in <b data-countdown>&hellip;</b></span>'
+        f'<span class="build">v{__version__} &middot; build <a href="{REPO}/commit/{commit}">{commit[:7] or "local"}</a></span>'
     )
 
 
@@ -221,7 +223,7 @@ def build(out: Path) -> Path:
     seed = commit or hashlib.sha1(now.isoformat().encode()).hexdigest()
     page = Template((HERE / "template.html").read_text(encoding="utf-8")).substitute(
         version=__version__,
-        metar=html.escape(metar(commit, now)),
+        status=status(commit),
         sky=sky_svg(seed),
         commands=command_reference(),
         settings=settings_table(),
