@@ -46,7 +46,8 @@ def test_sky_is_seeded_and_loops(site):
     a, b = site.sky_svg("abc"), site.sky_svg("abc")
     assert a == b != site.sky_svg("xyz")
     for name, *_ in site.DECKS:
-        assert f'href="#deck-{name}" x="-1200"' in a and f'href="#deck-{name}" x="1200"' in a
+        w = site.SKY_WIDTH
+        assert f'href="#deck-{name}" x="{-w}"' in a and f'href="#deck-{name}" x="{w}"' in a
 
 
 def test_no_template_placeholders_left(page):
@@ -54,10 +55,16 @@ def test_no_template_placeholders_left(page):
     assert not re.search(r"\$[a-z_]+", html.split('id="cab-data"')[0])
 
 
-def test_assets_copied(page):
-    out, _ = page
-    for rel in ["style.css", "js/live.js", "js/terminal.js", "js/planner.js", ".nojekyll"]:
-        assert (out / rel).exists(), rel
+def test_assets_are_fingerprinted(site, page):
+    out, html = page
+    assert (out / ".nojekyll").exists()
+    for rel in site.ASSETS:
+        url = site.fingerprint(rel)
+        assert re.fullmatch(r".+\.[0-9a-f]{10}\.(css|js)", url), url
+        assert (out / url).read_bytes() == (ROOT / "site" / rel).read_bytes()
+        assert f'"{url}"' in html
+    # no un-hashed asset references left for a stale cache to hit
+    assert 'href="style.css"' not in html and 'src="js/live.js"' not in html
 
 
 def test_terminal_data_matches_cli(page):
