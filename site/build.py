@@ -33,8 +33,10 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from cloud_auto_backup import __version__, cli  # noqa: E402
 from cloud_auto_backup.config import Config  # noqa: E402
+from cloud_auto_backup.config import load as config_load  # noqa: E402
 
 REPO = "https://github.com/JudeaTablate/cloud-auto-backup"
+PROJECT = config_load(environ={}, pyproject=ROOT / "pyproject.toml")
 
 
 # ---------------------------------------------------------------- sky ----
@@ -211,6 +213,17 @@ def settings_table() -> str:
     return "\n".join(out)
 
 
+def public_repos(user: str) -> list[dict]:
+    """The account's public repos for the terminal demo; falls back offline."""
+    from cloud_auto_backup import github
+
+    try:
+        repos = github.list_repos(user, None)
+    except Exception:  # offline or rate-limited: the demo still works
+        return [{"name": "cloud-auto-backup", "kb": 120}]
+    return [{"name": r.name, "kb": max(r.size_kb, 8)} for r in repos] or [{"name": "cloud-auto-backup", "kb": 120}]
+
+
 def terminal_data() -> str:
     """Everything the in-browser terminal needs, straight from the real code."""
     os.environ["COLUMNS"] = "78"  # argparse wraps to this
@@ -227,6 +240,8 @@ def terminal_data() -> str:
         },
         "files": len(files) or 30,
         "ls": sorted({f.split("/")[0] + ("/" if "/" in f else "") for f in files}),
+        "github_user": PROJECT.github_user,
+        "repos": public_repos(PROJECT.github_user) if PROJECT.github_user else [],
     }
     return json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
 

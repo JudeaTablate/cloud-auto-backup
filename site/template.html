@@ -25,7 +25,7 @@
       <p class="kicker">cloud-auto-backup &middot; v$version</p>
       <h1>My repo, <em>up in the clouds</em>, $schedule.</h1>
       <p class="eta">next backup in <b data-countdown>&hellip;</b> &middot; <span data-local-time>&hellip;</span> your time</p>
-      <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. It zips the tree, writes a SHA-256, ships both through rclone, and throws away the old ones.</p>
+      <p class="lede">A small Python tool I wrote so my code always has a copy somewhere that isn't GitHub. Every week it mirrors all of my GitHub repos into git bundles, writes a SHA-256 for each, ships them through rclone to Drive, and throws away the old ones.</p>
     </div>
     <figure class="seat">
       <div class="window" data-sky="day"><div class="glass">$sky</div></div>
@@ -47,13 +47,13 @@
 
   <section id="fl050">
     <h2><span class="fl">FL050</span> Take it for a spin</h2>
-    <p>This is a pretend <code>cab</code> wired to an in-memory remote with six weekly snapshots. The help text is the real argparse output. Try <code>cab prune --keep 3</code>, then <code>cab list</code>.</p>
+    <p>This is a pretend <code>cab</code> wired to an in-memory remote with six weekly snapshots. The help text is the real argparse output. Try <code>cab repos</code> to back up every repo on the account, or <code>cab prune --keep 3</code> then <code>cab list</code>.</p>
     <div class="term live" data-term>
       <div class="bar"><span>gdrive:Backups</span><span>simulated &middot; resets on reload</span></div>
       <div class="screen" role="log" aria-live="polite"></div>
       <label class="line"><span class="p">guest@cab:~</span><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="terminal input"></label>
       <div class="chips">
-        <button data-cmd="cab run">cab run</button><button data-cmd="cab list">cab list</button><button data-cmd="cab prune --keep 3">cab prune --keep 3</button><button data-cmd="cab run --dry-run --keep 2">cab run -n --keep 2</button><button data-cmd="cab config --remote s3">cab config --remote s3</button><button data-cmd="help">help</button>
+        <button data-cmd="cab repos">cab repos</button><button data-cmd="cab run">cab run</button><button data-cmd="cab list">cab list</button><button data-cmd="cab prune --keep 3">cab prune --keep 3</button><button data-cmd="cab run --dry-run --keep 2">cab run -n --keep 2</button><button data-cmd="cab config --remote s3">cab config --remote s3</button><button data-cmd="help">help</button>
       </div>
     </div>
     <p class="note">The real zip is built in a temp directory, never inside the folder it's archiving, so it can't swallow itself. <code>.git</code>, caches and old zips are skipped.</p>
@@ -63,11 +63,13 @@
     <h2><span class="fl">FL120</span> How it flies</h2>
     <ol class="route">
       <li><b>config</b><span>defaults &larr; <code>[tool.cab]</code> in pyproject &larr; <code>CAB_*</code> env &larr; flags</span></li>
-      <li><b>archive</b><span>walk the tree, apply excludes, deflate, hash</span></li>
-      <li><b>remote</b><span><code>rclone copyto</code> for the zip and its <code>.sha256</code></span></li>
-      <li><b>retention</b><span>keep the newest <i>N</i>, delete the rest (sidecars too)</span></li>
+      <li><b>github</b><span>list every repo the account owns (private too, with a token)</span></li>
+      <li><b>mirror</b><span><code>git clone --mirror</code>, then <code>git bundle --all</code>: every branch and tag in one file</span></li>
+      <li><b>remote</b><span><code>rclone copyto</code> to <code>Backups/repos/&lt;name&gt;/</code> with a <code>.sha256</code></span></li>
+      <li><b>retention</b><span>keep the newest <i>N</i> per repo, delete the rest (sidecars too)</span></li>
     </ol>
-    <p>Every rclone call goes through one function, so the tests run against a fake remote and never touch a real drive.</p>
+    <p>Restoring is one line: <code>git clone my-repo_2026-11-29_00-00.bundle my-repo</code>. The token, if you give one, goes to git as an HTTP header and never touches a URL, a file or the logs.</p>
+    <p class="note">Every rclone call goes through one function, so the tests run against a fake remote and a fake GitHub, and never touch a real drive.</p>
   </section>
 
   <section id="fl180">
