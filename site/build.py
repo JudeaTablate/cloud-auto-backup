@@ -52,26 +52,40 @@ def cloud_path(rng: random.Random, cx: float, base: float, width: float) -> str:
     return " ".join(d)
 
 
+DECKS = (
+    # name, base band (y0, y1), scale, clouds per lap, seconds per lap
+    ("hi", (60, 120), 0.5, 5, 260),
+    ("mid", (150, 230), 0.75, 4, 170),
+    ("lo", (260, 340), 1.0, 3, 110),
+)
+
+
 def sky_svg(seed: str, width: int = 1200, height: int = 360) -> str:
+    """Three cloud decks that drift left at different speeds (parallax).
+
+    Each deck is drawn once, then reused at -width and +width with <use>, so
+    sliding it by exactly one width loops without a visible seam.
+    """
     rng = random.Random(seed)
-    layers = []
-    # three decks: high and faint, mid, low and solid
-    for deck, (y0, y1, scale, cls, count) in enumerate(
-        [(60, 120, 0.5, "c-hi", 5), (150, 230, 0.75, "c-mid", 3), (260, 340, 1.0, "c-lo", 3)]
-    ):
-        for _ in range(count):
-            # keep the solid decks right of the headline; let the faint deck drift anywhere
-            cx = rng.uniform(0, width) if cls == "c-hi" else rng.uniform(width * 0.55, width * 1.05)
-            base = rng.uniform(y0, y1)
-            w = rng.uniform(140, 260) * scale
-            layers.append(f'<path class="{cls}" d="{cloud_path(rng, cx, base, w)}"/>')
+    decks = []
+    for name, (y0, y1), scale, count, seconds in DECKS:
+        slot = width / count
+        clouds = "".join(
+            f'<path d="{cloud_path(rng, slot * (i + rng.uniform(0.15, 0.85)), rng.uniform(y0, y1), rng.uniform(140, 260) * scale)}"/>'
+            for i in range(count)
+        )
+        decks.append(
+            f'<g class="deck deck-{name}" style="--lap:{seconds}s">'
+            f'<g id="deck-{name}">{clouds}</g>'
+            f'<use href="#deck-{name}" x="{-width}"/><use href="#deck-{name}" x="{width}"/></g>'
+        )
     ticks = "".join(
         f'<line class="tick" x1="0" x2="{14 if i % 5 == 0 else 7}" y1="{y}" y2="{y}"/>'
         for i, y in enumerate(range(20, height, 16))
     )
     return (
         f'<svg class="sky" viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMax slice" '
-        f'aria-hidden="true">{ticks}{"".join(layers)}</svg>'
+        f'aria-hidden="true" style="--w:{width}px">{ticks}{"".join(decks)}</svg>'
     )
 
 
