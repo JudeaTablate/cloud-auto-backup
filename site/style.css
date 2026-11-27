@@ -48,14 +48,19 @@ code { font-family: var(--mono); font-size: .92em; color: var(--blue); }
 .sky { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sky .tick { stroke: var(--cloud-edge); stroke-width: 1; }
 .sky path { stroke: var(--cloud-edge); stroke-width: 1.2; fill: var(--cloud); }
-.sky .c-hi { opacity: .35; }
-.sky .c-mid { opacity: .75; }
+.sky .deck-hi { opacity: .35; }
+.sky .deck-mid { opacity: .75; }
+.sky .deck { animation: drift var(--lap) linear infinite; }
+/* in SVG, CSS px inside transforms are user units, so --w is one viewBox width */
+@keyframes drift { to { transform: translateX(calc(-1 * var(--w))); } }
 .nav, .title { position: relative; max-width: 980px; margin: 0 auto; padding: 0 16px; }
 .nav { display: flex; flex-wrap: wrap; gap: 1.4rem; padding-top: 1.2rem; font-size: 13px; }
 .nav a { color: var(--muted); text-decoration: none; }
 .nav a:hover { color: var(--blue); }
 .nav .gh { margin-left: auto; color: var(--ink); }
 .title { padding-top: 5rem; padding-bottom: 4.5rem; }
+/* a paper-coloured halo keeps the copy readable while clouds pass behind it */
+.title > * { text-shadow: 0 0 2px var(--paper), 0 0 8px var(--paper), 0 0 16px var(--paper); }
 .kicker { margin: 0 0 .8rem; color: var(--muted); font-size: 13px; }
 h1 {
   margin: 0; max-width: 17ch; font: 400 clamp(2.4rem, 6vw, 4.3rem)/1.02 var(--serif);
@@ -131,4 +136,4 @@ th { font-weight: 500; color: var(--muted); font-size: 12px; text-transform: upp
   .flags li { grid-template-columns: 1fr; gap: 0; }
   .cmd summary { flex-direction: column; gap: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .blink { animation: none; } html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .blink, .sky .deck { animation: none; } html { scroll-behavior: auto; } }
