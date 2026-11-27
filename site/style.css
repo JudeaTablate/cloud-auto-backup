@@ -6,7 +6,10 @@
   --line: #b9cfe2;
   --blue: #2463a6;
   --cloud: #ffffff;
+  --cloud-shade: #d3e3f2;
   --cloud-edge: #9fbcd6;
+  --sky-top: #8fc3ee;
+  --sky-bottom: #e4f1fb;
   --beacon: #e0a12e;
   --term: #0f2236;
   --term-ink: #d8e8f5;
@@ -14,6 +17,7 @@
   --serif: "Instrument Serif", Georgia, serif;
 }
 @media (prefers-color-scheme: dark) {
+  .sky .stars { opacity: .75; }
   :root {
     --paper: #0b1724;
     --paper-2: #102131;
@@ -21,8 +25,11 @@
     --muted: #8aa3ba;
     --line: #23394f;
     --blue: #7db4ea;
-    --cloud: #1a2d40;
+    --cloud: #2b4560;
+    --cloud-shade: #172a3d;
     --cloud-edge: #34506b;
+    --sky-top: #050b14;
+    --sky-bottom: #17304a;
     --term: #060e17;
   }
 }
@@ -44,12 +51,21 @@ code { font-family: var(--mono); font-size: .92em; color: var(--blue); }
 .blink { color: var(--beacon); animation: blink 1.1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
-.top { position: relative; border-bottom: 1px solid var(--line); overflow: hidden; }
-.sky { position: absolute; inset: 0; width: 100%; height: 100%; }
-.sky .tick { stroke: var(--cloud-edge); stroke-width: 1; }
-.sky path { stroke: var(--cloud-edge); stroke-width: 1.2; fill: var(--cloud); }
-.sky .deck-hi { opacity: .35; }
-.sky .deck-mid { opacity: .75; }
+.top { border-bottom: 1px solid var(--line); }
+/* the clouds live in their own band, so they never sit behind text */
+.skyband {
+  position: relative; height: clamp(150px, 19vw, 230px); overflow: hidden; margin-top: 1rem;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sky .sky-top { stop-color: var(--sky-top); }
+.sky .sky-bottom { stop-color: var(--sky-bottom); }
+/* clouds are cloned by <use>, and selectors can't reach into those clones,
+   so colours are inherited: fill for the body, currentColor for the shade */
+.sky .deck { fill: var(--cloud); color: var(--cloud-shade); }
+.sky .stars { fill: #fff; opacity: 0; }
+.sky .deck-hi { opacity: .7; }
+.sky .deck-mid { opacity: .9; }
 .sky .deck { animation: drift var(--lap) linear infinite; }
 /* in SVG, CSS px inside transforms are user units, so --w is one viewBox width */
 @keyframes drift { to { transform: translateX(calc(-1 * var(--w))); } }
@@ -59,9 +75,7 @@ code { font-family: var(--mono); font-size: .92em; color: var(--blue); }
 .nav a:hover { color: var(--blue); }
 .nav a.on { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .nav .gh { color: var(--ink); }
-.title { padding-top: 5rem; padding-bottom: 4.5rem; }
-/* a paper-coloured halo keeps the copy readable while clouds pass behind it */
-.title > * { text-shadow: 0 0 2px var(--paper), 0 0 8px var(--paper), 0 0 16px var(--paper); }
+.title { padding-top: 3.2rem; padding-bottom: 3.6rem; }
 .kicker { margin: 0 0 .8rem; color: var(--muted); font-size: 13px; }
 h1 {
   margin: 0; max-width: 17ch; font: 400 clamp(2.4rem, 6vw, 4.3rem)/1.02 var(--serif);
@@ -188,7 +202,7 @@ th { font-weight: 500; color: var(--muted); font-size: 12px; text-transform: upp
   main { grid-template-columns: minmax(0, 1fr); }
   .tape { display: none; }
   section { grid-column: 1; }
-  .title { padding-top: 3rem; padding-bottom: 3rem; }
+  .title { padding-top: 2.2rem; padding-bottom: 2.6rem; }
   .route li { grid-template-columns: 3rem 1fr; }
   .route li span { grid-column: 2; }
   .flags li { grid-template-columns: 1fr; gap: 0; }
