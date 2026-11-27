@@ -1,32 +1,35 @@
 name: Weekly Cloud Backup
 
 on:
-  workflow_dispatch: # Manual button
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (show what would change, touch nothing)"
+        type: boolean
+        default: false
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0" # Sundays 00:00 UTC
 
 jobs:
-  backup-job:
+  backup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      
-      - name: Install Rclone
+      - uses: actions/checkout@v4
+
+      - name: Install rclone
         uses: AnimMouse/setup-rclone@v1
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
           disable_base64: true
 
-      - name: Verify Rclone Installation
-        run: rclone version 
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.12"
 
-      - name: Run Backup Script
-        run: |
-          pip install rclone-python
-          python backup.py
+      - name: Install cab
+        run: pip install .
+
+      - name: Back up
+        env:
+          CAB_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: cab run
