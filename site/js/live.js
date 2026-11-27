@@ -32,6 +32,21 @@
   tick();
   setInterval(tick, 1000);
 
+  // the window sky follows the visitor's clock: dawn, day, dusk or night
+  const pane = document.querySelector(".window[data-sky]");
+  const label = document.querySelector("[data-sky-label]");
+  function phase(h) {
+    return h >= 5 && h < 7 ? "dawn" : h >= 7 && h < 17 ? "day" : h >= 17 && h < 19 ? "dusk" : "night";
+  }
+  function paintSky() {
+    if (!pane) return;
+    const p = phase(new Date().getHours());
+    pane.dataset.sky = p;
+    if (label) label.textContent = { dawn: "dawn", day: "daytime", dusk: "dusk", night: "night" }[p];
+  }
+  paintSky();
+  setInterval(paintSky, 60000);
+
   // pause / resume the cloud drift; remembered per browser when storage works
   const toggle = document.querySelector("[data-drift]");
   if (toggle) {
