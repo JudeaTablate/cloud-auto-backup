@@ -75,7 +75,7 @@ def test_terminal_data_matches_cli(page):
     raw = re.search(r'<script type="application/json" id="cab-data">(.*?)</script>', html, re.S).group(1)
     data = json.loads(raw)
     assert data["version"] == __version__
-    assert set(data["help"]) == {"cab", "run", "list", "prune", "config"}
+    assert set(data["help"]) == {"cab", "run", "repos", "list", "prune", "config"}
     assert data["defaults"]["keep"] == Config().keep
     assert "usage: cab" in data["help"]["cab"]
 

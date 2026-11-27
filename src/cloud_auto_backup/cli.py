@@ -9,7 +9,9 @@ import tempfile
 from pathlib import Path
 from typing import Sequence
 
-from . import __version__, archive, config, retention
+import os
+
+from . import __version__, archive, config, github, mirror, retention
 from .remote import Rclone, RcloneError
 
 log = logging.getLogger("cab")
@@ -61,6 +63,42 @@ def cmd_prune(cfg: config.Config, rclone: Rclone) -> int:
     return 0
 
 
+def cmd_repos(cfg: config.Config, rclone: Rclone, *, token: str | None = None,
+              list_repos=github.list_repos, bundle=mirror.bundle) -> int:
+    """Back up every GitHub repo you own: mirror, bundle, upload, prune each."""
+    if not cfg.github_user:
+        raise ValueError("set github_user ([tool.cab], CAB_GITHUB_USER or --github-user)")
+    token = token if token is not None else os.environ.get("CAB_GITHUB_TOKEN") or None
+    repos = list_repos(cfg.github_user, token, forks=cfg.forks)
+    scope = "public + private" if token else "public only (no CAB_GITHUB_TOKEN)"
+    log.info("github   %d repos for %s, %s", len(repos), cfg.github_user, scope)
+    stamp = archive.archive_name("x").removeprefix("x_").removesuffix(".zip")
+    failed = 0
+    for repo in repos:
+        target = f"{cfg.target.rstrip('/')}/repos/{repo.name}"
+        name = f"{repo.name}_{stamp}.bundle"
+        try:
+            with tempfile.TemporaryDirectory(prefix="cab-repo-") as tmp:
+                snap = bundle(repo.clone_url, Path(tmp), name, token)
+                rclone.upload([snap.zip_path, snap.checksum_path], target)
+            log.info("bundled  %-28s %9s -> %s%s", repo.name, human(snap.size), target,
+                     "  [dry-run]" if cfg.dry_run else "")
+        except mirror.MirrorError as exc:
+            if "empty" in str(exc).lower():
+                log.info("skipped  %-28s (empty repo)", repo.name)
+                continue
+            failed += 1
+            log.error("failed   %-28s %s", repo.name, exc)
+            continue
+        if cfg.keep:
+            names = [f.name for f in rclone.list(target)]
+            for old in retention.plan_prune(names, repo.name, cfg.keep, ext=".bundle"):
+                rclone.delete(target, old)
+                log.info("pruned   %s%s", old, "  [dry-run]" if cfg.dry_run else "")
+    log.info("done     %d backed up, %d failed", len(repos) - failed, failed)
+    return 1 if failed else 0
+
+
 def cmd_config(cfg: config.Config, rclone: Rclone) -> int:
     """Print the resolved settings and exit."""
     for key, value in vars(cfg).items():
@@ -71,7 +109,7 @@ def cmd_config(cfg: config.Config, rclone: Rclone) -> int:
     return 0
 
 
-COMMANDS = {"run": cmd_run, "list": cmd_list, "prune": cmd_prune, "config": cmd_config}
+COMMANDS = {"run": cmd_run, "repos": cmd_repos, "list": cmd_list, "prune": cmd_prune, "config": cmd_config}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -92,6 +130,9 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--exclude", help="comma-separated glob patterns to skip")
         p.add_argument("-n", "--dry-run", action="store_true", default=None,
                        help="show what would change on the remote without changing it")
+        if name in ("repos", "config"):
+            p.add_argument("--github-user", help="GitHub account whose repos to back up")
+            p.add_argument("--forks", action="store_true", default=None, help="include forked repos")
     return parser
 
 
@@ -108,7 +149,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         cfg = config.load(overrides)
         return COMMANDS[command](cfg, Rclone(dry_run=cfg.dry_run))
-    except (RcloneError, ValueError, OSError) as exc:
+    except (RcloneError, github.GitHubError, ValueError, OSError) as exc:
         log.error("error    %s", exc)
         return 1
 

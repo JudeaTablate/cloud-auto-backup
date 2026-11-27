@@ -28,6 +28,8 @@ class Config:
     prefix: str = "repo_backup"
     exclude: tuple[str, ...] = field(default=DEFAULT_EXCLUDES)
     dry_run: bool = False
+    github_user: str = ""
+    forks: bool = False
 
     @property
     def target(self) -> str:
@@ -55,7 +57,7 @@ def _coerce(values: Mapping[str, Any]) -> dict[str, Any]:
             if isinstance(value, str):
                 value = [p for p in value.split(",")]
             value = tuple(p.strip() for p in value if p.strip())
-        elif key == "dry_run":
+        elif key in ("dry_run", "forks"):
             value = value if isinstance(value, bool) else str(value).lower() in {"1", "true", "yes"}
         out[key] = value
     return out
